@@ -3,6 +3,11 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "paths": {
+      "apollo-angular-signal": [
+        "./dist/apollo-angular-signal"
+      ]
+    },
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -12,7 +17,7 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "target": "ES2022",
+    "target": "ES2024",
     "module": "preserve"
   },
   "angularCompilerOptions": {
@@ -28,6 +33,12 @@
     },
     {
       "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/apollo-angular-signal/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/apollo-angular-signal/tsconfig.spec.json"
     }
   ]
 }
