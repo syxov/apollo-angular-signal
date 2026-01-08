@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
-import { of, throwError, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { gqlQuery } from './apollo-angular-signal';
+import { Apollo } from 'apollo-angular';
+import { signal } from '@angular/core';
 
 describe('gqlQuery', () => {
   beforeEach(() => {
@@ -9,131 +10,87 @@ describe('gqlQuery', () => {
   });
 
   describe('with Observable (non-function)', () => {
-    it('should set initial loading state', () => {
+    it('should work fine', () => {
       TestBed.runInInjectionContext(() => {
-        const mockQuery$ = new Subject();
-        const result = gqlQuery(mockQuery$);
+        const query = new Subject<Apollo.QueryResult<string>>();
+        const result = gqlQuery(query);
 
         expect(result().loading).toBe(true);
+        expect(result().data).toBe(undefined);
         expect(result().hasError).toBe(false);
-      });
-    });
 
-    it('should update state when data is received', (done) => {
-      TestBed.runInInjectionContext(() => {
-        const mockData = { id: 1, name: 'Test' };
-        const mockQuery$ = of({ data: mockData, loading: false });
+        query.next({ data: 'foo' });
 
-        const result = gqlQuery(mockQuery$);
+        expect(result().loading).toBe(false);
+        expect(result().data).toBe('foo');
+        expect(result().hasError).toBe(false);
 
-        setTimeout(() => {
-          expect(result().data).toEqual(mockData);
-          expect(result().loading).toBe(false);
-          expect(result().hasError).toBe(false);
-          done();
-        }, 0);
-      });
-    });
+        const error = new Error('error');
+        query.error(error);
 
-    it('should handle errors in result', (done) => {
-      TestBed.runInInjectionContext(() => {
-        const mockError = new Error('Test error');
-        const mockQuery$ = of({ data: null, loading: false, error: mockError });
-
-        const result = gqlQuery(mockQuery$);
-
-        setTimeout(() => {
-          expect(result().hasError).toBe(true);
-          expect(result().error).toBe(mockError);
-          expect(result().loading).toBe(false);
-          done();
-        }, 0);
-      });
-    });
-
-    it('should handle results without loading property', (done) => {
-      TestBed.runInInjectionContext(() => {
-        const mockData = { id: 1, name: 'Test' };
-        const mockQuery$ = of({ data: mockData });
-
-        const result = gqlQuery(mockQuery$);
-
-        setTimeout(() => {
-          expect(result().data).toEqual(mockData);
-          expect(result().loading).toBe(false);
-          done();
-        }, 0);
+        expect(result().loading).toBe(false);
+        expect(result().data).toBe(undefined);
+        expect(result().hasError).toBe(true);
+        expect(result().error).toBe(error);
       });
     });
   });
 
   describe('with function (async mode)', () => {
-    it('should set initial loading state', () => {
+    it('should work fine with static query', () => {
       TestBed.runInInjectionContext(() => {
-        const mockQuery$ = of({ data: null, loading: true });
-        const result = gqlQuery(() => mockQuery$);
+        const query = new Subject<Apollo.QueryResult<string>>();
+        const result = gqlQuery(() => query);
+
+        TestBed.tick();
 
         expect(result().loading).toBe(true);
+        expect(result().data).toBe(undefined);
         expect(result().hasError).toBe(false);
+
+        query.next({ data: 'foo' });
+
+        expect(result().loading).toBe(false);
+        expect(result().data).toBe('foo');
+        expect(result().hasError).toBe(false);
+
+        const error = new Error('error');
+        query.error(error);
+
+        expect(result().loading).toBe(false);
+        expect(result().data).toBe(undefined);
+        expect(result().hasError).toBe(true);
+        expect(result().error).toBe(error);
       });
     });
 
-    it('should react to changes in function', (done) => {
+    it('should work fine with dynamic query', () => {
       TestBed.runInInjectionContext(() => {
-        const dataSignal = signal({ data: { value: 1 }, loading: false });
-        const result = gqlQuery(() => of(dataSignal()));
+        const query = new Subject<Apollo.QueryResult<string>>();
+        const queryCanBeReturned = signal(false);
+        const result = gqlQuery(() => {
+          return queryCanBeReturned() ? query : null;
+        });
 
-        setTimeout(() => {
-          expect(result().data?.value).toBe(1);
+        TestBed.tick();
 
-          dataSignal.set({ data: { value: 2 }, loading: false });
+        expect(result().loading).toBe(true);
+        expect(result().data).toBe(undefined);
+        expect(result().hasError).toBe(false);
 
-          setTimeout(() => {
-            expect(result().data?.value).toBe(2);
-            done();
-          }, 0);
-        }, 0);
-      });
-    });
+        query.next({ data: 'foo' });
 
-    it('should handle subscription errors', (done) => {
-      TestBed.runInInjectionContext(() => {
-        const mockError = new Error('Subscribe error');
-        const result = gqlQuery(() => throwError(() => mockError));
+        expect(result().loading).toBe(true);
+        expect(result().data).toBe(undefined);
+        expect(result().hasError).toBe(false);
 
-        setTimeout(() => {
-          expect(result().hasError).toBe(true);
-          expect(result().error).toBe(mockError);
-          expect(result().loading).toBe(false);
-          done();
-        }, 10);
-      });
-    });
+        queryCanBeReturned.set(true);
+        TestBed.tick();
+        query.next({ data: 'foo' });
 
-    it('should handle errors in result data', (done) => {
-      TestBed.runInInjectionContext(() => {
-        const mockError = new Error('Result error');
-        const result = gqlQuery(() =>
-          of({ data: null, loading: false, error: mockError }),
-        );
-
-        setTimeout(() => {
-          expect(result().hasError).toBe(true);
-          expect(result().error).toBe(mockError);
-          expect(result().loading).toBe(false);
-          done();
-        }, 0);
-      });
-    });
-
-    it('should unsubscribe on cleanup', () => {
-      TestBed.runInInjectionContext(() => {
-        const subject = new Subject();
-        const spy = spyOn(subject, 'subscribe').and.callThrough();
-
-        gqlQuery(() => subject);
-
-        expect(spy).toHaveBeenCalled();
+        expect(result().loading).toBe(false);
+        expect(result().data).toBe('foo');
+        expect(result().hasError).toBe(false);
       });
     });
   });

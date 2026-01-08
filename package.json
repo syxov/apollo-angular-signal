@@ -38,6 +38,8 @@
     "@angular/build": "^21.0.5",
     "@angular/cli": "^21.0.5",
     "@angular/compiler-cli": "^21.0.7",
+    "@eslint/js": "^9.39.2",
+    "@vitest/coverage-v8": "^4.0.16",
     "angular-eslint": "21.1.0",
     "eslint": "^9.39.2",
     "jsdom": "^27.4.0",
