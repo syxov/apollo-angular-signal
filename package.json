@@ -8,10 +8,10 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "prettier": "prettier --write projects/**/*.ts --log-level=error --experimental-cli"
   },
   "prettier": {
-    "printWidth": 100,
     "singleQuote": true,
     "overrides": [
       {
@@ -42,6 +42,7 @@
     "eslint": "^9.39.2",
     "jsdom": "^27.4.0",
     "ng-packagr": "^21.0.1",
+    "prettier": "^3.7.4",
     "typescript": "~5.9.3",
     "typescript-eslint": "8.52.0",
     "vitest": "^4.0.16"

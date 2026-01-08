@@ -113,7 +113,9 @@ describe('gqlQuery', () => {
     it('should handle errors in result data', (done) => {
       TestBed.runInInjectionContext(() => {
         const mockError = new Error('Result error');
-        const result = gqlQuery(() => of({ data: null, loading: false, error: mockError }));
+        const result = gqlQuery(() =>
+          of({ data: null, loading: false, error: mockError }),
+        );
 
         setTimeout(() => {
           expect(result().hasError).toBe(true);
