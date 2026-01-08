@@ -1,15 +1,15 @@
-import { computed, effect, signal, Signal } from '@angular/core';
-import { Observable, ObservableQuery } from '@apollo/client';
-import { Apollo } from 'apollo-angular';
+import { computed, effect, signal, type Signal } from '@angular/core';
+import { ObservableQuery } from '@apollo/client';
+import type { Apollo } from 'apollo-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subscription } from 'rxjs';
+import type { Subscription, Observable } from 'rxjs';
 
-type Result<T> =
+export type GqlQueryResult<T> =
   | Apollo.QueryResult<T>
   | Apollo.SubscribeResult<T>
   | ObservableQuery.Result<T>;
 
-export type ObservableResult<T> = Observable<Result<T>>;
+export type ObservableResult<T> = Observable<GqlQueryResult<T>>;
 
 type Maybe<T> = T | null | undefined;
 

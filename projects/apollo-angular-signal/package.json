@@ -1,9 +1,10 @@
 {
   "name": "apollo-angular-signal",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "peerDependencies": {
-    "@angular/common": "^21.0.0",
-    "@angular/core": "^21.0.0"
+    "@angular/common": "^20 || ^21",
+    "@angular/core": "^20 || ^21",
+    "apollo-angular": "^13"
   },
   "sideEffects": false
 }
