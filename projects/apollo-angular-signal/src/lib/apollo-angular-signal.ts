@@ -13,7 +13,7 @@ export type ObservableResult<T> = Observable<GqlQueryResult<T>>;
 
 type Maybe<T> = T | null | undefined;
 
-interface LibResult<T> {
+export interface GqlSignalResult<T> {
   data?: T;
   loading: boolean;
   hasError: boolean;
@@ -22,11 +22,11 @@ interface LibResult<T> {
 
 export function gqlQuery<T>(
   query: ObservableResult<T> | (() => Maybe<ObservableResult<T>>),
-): Signal<LibResult<T>> {
+): Signal<GqlSignalResult<T>> {
   if (typeof query === 'function') {
     return gqlAsync(query);
   } else {
-    const state = signal<LibResult<T>>({
+    const state = signal<GqlSignalResult<T>>({
       loading: true,
       hasError: false,
     });
@@ -55,8 +55,8 @@ export function gqlQuery<T>(
 
 function gqlAsync<T>(
   fn: () => Maybe<ObservableResult<T>>,
-): Signal<LibResult<T>> {
-  const state = signal<LibResult<T>>({
+): Signal<GqlSignalResult<T>> {
+  const state = signal<GqlSignalResult<T>>({
     loading: true,
     hasError: false,
   });

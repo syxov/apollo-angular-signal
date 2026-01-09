@@ -1,4 +1,4 @@
-# ApolloAngularSignal
+# Apollo Angular Signal
 
 A lightweight Angular library that converts Apollo GraphQL queries into Angular signals, enabling seamless integration between Apollo Client and Angular's signal-based reactive programming.
 
@@ -160,7 +160,7 @@ Converts an Apollo query/subscription observable into an Angular signal.
 - `query`: Either an `Observable<QueryResult<T>>` or a function returning one (for reactive queries)
 
 **Returns:**
-A `Signal<LibResult<T>>` where `LibResult` contains:
+A `Signal<GqlSignalResult<T>>` where `GqlSignalResult` contains:
 - `data?: T` - The query result data
 - `loading: boolean` - Loading state
 - `hasError: boolean` - Whether an error occurred
