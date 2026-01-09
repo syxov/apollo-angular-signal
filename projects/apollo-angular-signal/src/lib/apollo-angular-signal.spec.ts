@@ -93,5 +93,36 @@ describe('gqlQuery', () => {
         expect(result().hasError).toBe(false);
       });
     });
+
+    it('should work fine after reseting a query', () => {
+      TestBed.runInInjectionContext(() => {
+        const query = new Subject<Apollo.QueryResult<string>>();
+        const queryCanBeReturned = signal(false);
+        const result = gqlQuery(() => {
+          return queryCanBeReturned() ? query : null;
+        });
+
+        TestBed.tick();
+
+        expect(result().loading).toBe(true);
+        expect(result().data).toBe(undefined);
+        expect(result().hasError).toBe(false);
+
+        queryCanBeReturned.set(true);
+        TestBed.tick();
+        query.next({ data: 'foo' });
+
+        expect(result().loading).toBe(false);
+        expect(result().data).toBe('foo');
+        expect(result().hasError).toBe(false);
+
+        queryCanBeReturned.set(false);
+        TestBed.tick();
+
+        expect(result().loading).toBe(true);
+        expect(result().data).toBe(undefined);
+        expect(result().hasError).toBe(false);
+      });
+    });
   });
 });

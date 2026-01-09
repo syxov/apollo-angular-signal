@@ -32,10 +32,7 @@ export function gqlQuery<T>(
   if (typeof query === 'function') {
     return gqlAsync(query);
   } else {
-    const state = signal<GqlSignalResult<T>>({
-      loading: true,
-      hasError: false,
-    });
+    const state = signal<GqlSignalResult<T>>(getInitialState());
 
     query.pipe(takeUntilDestroyed()).subscribe({
       next: (res) => {
@@ -53,10 +50,7 @@ export function gqlQuery<T>(
 function gqlAsync<T>(
   fn: () => Maybe<ObservableResult<T>>,
 ): Signal<GqlSignalResult<T>> {
-  const state = signal<GqlSignalResult<T>>({
-    loading: true,
-    hasError: false,
-  });
+  const state = signal<GqlSignalResult<T>>(getInitialState());
 
   const source$ = computed(fn);
 
@@ -72,10 +66,13 @@ function gqlAsync<T>(
           processErr(state, error);
         },
       });
+    } else {
+      state.set(getInitialState());
     }
 
     onCleanup(() => {
       sub?.unsubscribe();
+      sub = null;
     });
   });
 
@@ -103,4 +100,11 @@ function processErr<T>(
     hasError: true,
     error,
   });
+}
+
+function getInitialState<T>(): GqlSignalResult<T> {
+  return {
+    loading: true,
+    hasError: false,
+  };
 }
