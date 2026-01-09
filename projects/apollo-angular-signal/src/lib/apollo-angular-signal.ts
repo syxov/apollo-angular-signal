@@ -67,7 +67,7 @@ function gqlAsync<T>(
     const observable = source$();
     let sub: Maybe<Subscription>;
     if (observable) {
-      sub = observable.pipe(takeUntilDestroyed()).subscribe({
+      sub = observable.subscribe({
         next: (res) => {
           state.set({
             data: res.data as T,
