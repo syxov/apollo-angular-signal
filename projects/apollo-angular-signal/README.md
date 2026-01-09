@@ -1,63 +1,186 @@
 # ApolloAngularSignal
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.0.
+A lightweight Angular library that converts Apollo GraphQL queries into Angular signals, enabling seamless integration between Apollo Client and Angular's signal-based reactive programming.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Installation
 
 ```bash
-ng generate component component-name
+npm install apollo-angular-signal
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## What It Does
 
-```bash
-ng generate --help
+This library takes Apollo Angular `ObservableQuery` results and transforms them into Angular signals, providing a more idiomatic way to work with GraphQL data in modern Angular applications.
+
+## Usage
+
+### Basic Query
+
+```typescript
+import { Component, inject } from '@angular/core';
+import { Apollo, gql } from 'apollo-angular';
+import { gqlQuery } from 'apollo-angular-signal';
+
+const GET_USERS = gql`
+  query GetUsers {
+    users {
+      id
+      name
+      email
+    }
+  }
+`;
+
+@Component({
+  selector: 'app-users',
+  template: `
+    @if (users().loading) {
+      <div>Loading...</div>
+    }
+    @if (users().hasError) {
+      <div>Error: {{ users().error }}</div>
+    }
+    @if (users().data) {
+      <ul>
+        @for (user of users().data.users; track user.id) {
+          <li>{{ user.name }} - {{ user.email }}</li>
+        }
+      </ul>
+    }
+  `
+})
+export class UsersComponent {
+  private apollo = inject(Apollo);
+
+  users = gqlQuery<{ users: Array<{ id: string; name: string; email: string }> }>(
+    this.apollo.watchQuery({
+      query: GET_USERS
+    }).valueChanges
+  );
+}
 ```
 
-## Building
+### Query with Variables
 
-To build the library, run:
+```typescript
+import { Component, inject, signal } from '@angular/core';
+import { Apollo, gql } from 'apollo-angular';
+import { gqlQuery } from 'apollo-angular-signal';
 
-```bash
-ng build apollo-angular-signal
+const GET_USER = gql`
+  query GetUser($id: ID!) {
+    user(id: $id) {
+      id
+      name
+      email
+    }
+  }
+`;
+
+@Component({
+  selector: 'app-user-detail',
+  template: `
+    <input [(ngModel)]="userId" placeholder="Enter user ID">
+
+    @if (user().loading) {
+      <div>Loading...</div>
+    }
+    @if (user().data) {
+      <div>
+        <h2>{{ user().data.user.name }}</h2>
+        <p>{{ user().data.user.email }}</p>
+      </div>
+    }
+  `
+})
+export class UserDetailComponent {
+  private apollo = inject(Apollo);
+
+  userId = signal('1');
+
+  // Reactive query that re-executes when userId changes
+  user = gqlQuery<{ user: { id: string; name: string; email: string } }>(() => {
+    const id = this.userId();
+    if (!id) return null;
+
+    return this.apollo.watchQuery({
+      query: GET_USER,
+      variables: { id }
+    }).valueChanges;
+  });
+}
 ```
 
-This command will compile your project, and the build artifacts will be placed in the `dist/` directory.
+### Subscriptions
 
-### Publishing the Library
+```typescript
+import { Component, inject } from '@angular/core';
+import { Apollo, gql } from 'apollo-angular';
+import { gqlQuery } from 'apollo-angular-signal';
 
-Once the project is built, you can publish your library by following these steps:
+const MESSAGE_SUBSCRIPTION = gql`
+  subscription OnMessageAdded {
+    messageAdded {
+      id
+      text
+      author
+    }
+  }
+`;
 
-1. Navigate to the `dist` directory:
-   ```bash
-   cd dist/apollo-angular-signal
-   ```
+@Component({
+  selector: 'app-messages',
+  template: `
+    @if (messages().data) {
+      <div>
+        <p><strong>{{ messages().data.messageAdded.author }}:</strong></p>
+        <p>{{ messages().data.messageAdded.text }}</p>
+      </div>
+    }
+  `
+})
+export class MessagesComponent {
+  private apollo = inject(Apollo);
 
-2. Run the `npm publish` command to publish your library to the npm registry:
-   ```bash
-   npm publish
-   ```
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
+  messages = gqlQuery<{ messageAdded: { id: string; text: string; author: string } }>(
+    this.apollo.subscribe({
+      query: MESSAGE_SUBSCRIPTION
+    })
+  );
+}
 ```
 
-## Running end-to-end tests
+## API
 
-For end-to-end (e2e) testing, run:
+### `gqlQuery<T>(query)`
 
-```bash
-ng e2e
+Converts an Apollo query/subscription observable into an Angular signal.
+
+**Parameters:**
+- `query`: Either an `Observable<QueryResult<T>>` or a function returning one (for reactive queries)
+
+**Returns:**
+A `Signal<LibResult<T>>` where `LibResult` contains:
+- `data?: T` - The query result data
+- `loading: boolean` - Loading state
+- `hasError: boolean` - Whether an error occurred
+- `error?: unknown` - Error object if present
+
+**Two modes:**
+
+1. **Static mode**: Pass observable directly
+```typescript
+gqlQuery(apollo.watchQuery({ query: GET_DATA }).valueChanges)
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+2. **Reactive mode**: Pass a function for reactive re-execution
+```typescript
+gqlQuery(() => {
+  const id = someSignal();
+  return apollo.watchQuery({ query: GET_DATA, variables: { id } }).valueChanges;
+})
+```
 
-## Additional Resources
+## License
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+MIT

@@ -1,5 +1,5 @@
 import { computed, effect, signal, type Signal } from '@angular/core';
-import { ObservableQuery } from '@apollo/client';
+import type { ObservableQuery } from '@apollo/client';
 import type { Apollo } from 'apollo-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Subscription, Observable } from 'rxjs';
