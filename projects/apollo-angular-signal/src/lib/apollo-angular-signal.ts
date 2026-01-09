@@ -1,4 +1,10 @@
-import { computed, effect, signal, type Signal } from '@angular/core';
+import {
+  computed,
+  effect,
+  signal,
+  type Signal,
+  WritableSignal,
+} from '@angular/core';
 import type { ObservableQuery } from '@apollo/client';
 import type { Apollo } from 'apollo-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -9,7 +15,7 @@ export type GqlQueryResult<T> =
   | Apollo.SubscribeResult<T>
   | ObservableQuery.Result<T>;
 
-export type ObservableResult<T> = Observable<GqlQueryResult<T>>;
+type ObservableResult<T> = Observable<GqlQueryResult<T>>;
 
 type Maybe<T> = T | null | undefined;
 
@@ -33,19 +39,10 @@ export function gqlQuery<T>(
 
     query.pipe(takeUntilDestroyed()).subscribe({
       next: (res) => {
-        state.set({
-          data: res.data as T,
-          hasError: !!res.error,
-          error: res.error,
-          loading: 'loading' in res ? res.loading : false,
-        });
+        processRes(state, res);
       },
       error: (error: unknown) => {
-        state.set({
-          loading: false,
-          hasError: true,
-          error,
-        });
+        processErr(state, error);
       },
     });
 
@@ -69,19 +66,10 @@ function gqlAsync<T>(
     if (observable) {
       sub = observable.subscribe({
         next: (res) => {
-          state.set({
-            data: res.data as T,
-            loading: 'loading' in res ? res.loading : false,
-            hasError: !!res.error,
-            error: res.error,
-          });
+          processRes(state, res);
         },
-        error: (error: unknown) => {
-          state.set({
-            loading: false,
-            hasError: true,
-            error,
-          });
+        error(error: unknown) {
+          processErr(state, error);
         },
       });
     }
@@ -92,4 +80,27 @@ function gqlAsync<T>(
   });
 
   return state;
+}
+
+function processRes<T>(
+  state: WritableSignal<GqlSignalResult<T>>,
+  res: GqlQueryResult<T>,
+): void {
+  state.set({
+    data: res.data as T,
+    loading: 'loading' in res ? res.loading : false,
+    hasError: !!res.error,
+    error: res.error,
+  });
+}
+
+function processErr<T>(
+  state: WritableSignal<GqlSignalResult<T>>,
+  error: unknown,
+): void {
+  state.set({
+    loading: false,
+    hasError: true,
+    error,
+  });
 }
