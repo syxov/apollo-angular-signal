@@ -3,12 +3,13 @@ import {
   effect,
   signal,
   type Signal,
-  WritableSignal,
+  type WritableSignal,
 } from '@angular/core';
 import type { ObservableQuery } from '@apollo/client';
 import type { Apollo } from 'apollo-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Subscription, Observable } from 'rxjs';
+import { debounce } from 'es-toolkit';
 
 export type GqlQueryResult<T> =
   | Apollo.QueryResult<T>
@@ -54,18 +55,25 @@ function gqlAsync<T>(
 
   const source$ = computed(fn);
 
+  let sub: Maybe<Subscription>;
+
+  // Use debounce to ensure we only subscribe once when multiple dependent signals
+  // update synchronously, avoiding unnecessary subscription churn
+  const subscribeOnObservable = debounce((observable: ObservableResult<T>) => {
+    sub = observable.subscribe({
+      next: (res) => {
+        processRes(state, res);
+      },
+      error(error: unknown) {
+        processErr(state, error);
+      },
+    });
+  }, 0);
+
   effect((onCleanup) => {
     const observable = source$();
-    let sub: Maybe<Subscription>;
     if (observable) {
-      sub = observable.subscribe({
-        next: (res) => {
-          processRes(state, res);
-        },
-        error(error: unknown) {
-          processErr(state, error);
-        },
-      });
+      subscribeOnObservable(observable);
     } else {
       state.set(getInitialState());
     }

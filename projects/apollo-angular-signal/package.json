@@ -6,7 +6,8 @@
     "@angular/core": "^20 || ^21",
     "apollo-angular": "^13",
     "@apollo/client": "^4",
-    "rxjs": "^7"
+    "rxjs": "^7",
+    "es-toolkit": "^1.40 || ^2"
   },
   "sideEffects": false
 }

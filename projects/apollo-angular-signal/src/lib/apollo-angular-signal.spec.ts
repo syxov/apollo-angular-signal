@@ -6,6 +6,7 @@ import { signal } from '@angular/core';
 
 describe('gqlQuery', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     TestBed.configureTestingModule({});
   });
 
@@ -37,12 +38,13 @@ describe('gqlQuery', () => {
   });
 
   describe('with function (async mode)', () => {
-    it('should work fine with static query', () => {
-      TestBed.runInInjectionContext(() => {
+    it('should work fine with static query', async () => {
+      await TestBed.runInInjectionContext(async () => {
         const query = new Subject<Apollo.QueryResult<string>>();
         const result = gqlQuery(() => query);
 
         TestBed.tick();
+        await vi.runAllTimersAsync();
 
         expect(result().loading).toBe(true);
         expect(result().data).toBe(undefined);
@@ -64,8 +66,8 @@ describe('gqlQuery', () => {
       });
     });
 
-    it('should work fine with dynamic query', () => {
-      TestBed.runInInjectionContext(() => {
+    it('should work fine with dynamic query', async () => {
+      await TestBed.runInInjectionContext(async () => {
         const query = new Subject<Apollo.QueryResult<string>>();
         const queryCanBeReturned = signal(false);
         const result = gqlQuery(() => {
@@ -86,6 +88,7 @@ describe('gqlQuery', () => {
 
         queryCanBeReturned.set(true);
         TestBed.tick();
+        await vi.runAllTimersAsync();
         query.next({ data: 'foo' });
 
         expect(result().loading).toBe(false);
@@ -94,8 +97,8 @@ describe('gqlQuery', () => {
       });
     });
 
-    it('should work fine after reseting a query', () => {
-      TestBed.runInInjectionContext(() => {
+    it('should work fine after reseting a query', async () => {
+      await TestBed.runInInjectionContext(async () => {
         const query = new Subject<Apollo.QueryResult<string>>();
         const queryCanBeReturned = signal(false);
         const result = gqlQuery(() => {
@@ -110,6 +113,7 @@ describe('gqlQuery', () => {
 
         queryCanBeReturned.set(true);
         TestBed.tick();
+        await vi.runAllTimersAsync();
         query.next({ data: 'foo' });
 
         expect(result().loading).toBe(false);
@@ -118,6 +122,7 @@ describe('gqlQuery', () => {
 
         queryCanBeReturned.set(false);
         TestBed.tick();
+        await vi.runAllTimersAsync();
 
         expect(result().loading).toBe(true);
         expect(result().data).toBe(undefined);
