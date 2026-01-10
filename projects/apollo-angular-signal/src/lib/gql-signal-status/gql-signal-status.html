@@ -1,7 +1,23 @@
 @if (gql().loading) {
-  <ng-content select="[loading]"/>
+  <ng-content select="[gqlLoading]">
+    @if (config != null && config.loadingDefaultTemplate) {
+      @if (typeof config.loadingDefaultTemplate === 'string') {
+        {{ config.loadingDefaultTemplate }}
+      } @else {
+        <ng-container *ngComponentOutlet="config.loadingDefaultTemplate" />
+      }
+    }
+  </ng-content>
 } @else if (gql().hasError) {
-  <ng-content select="[error]"/>
+  <ng-content select="[gqlError]">
+    @if (config != null && config.errorDefaultTemplate) {
+      @if (typeof config.errorDefaultTemplate === 'string') {
+        {{ config.errorDefaultTemplate }}
+      } @else {
+        <ng-container *ngComponentOutlet="config.errorDefaultTemplate" />
+      }
+    }
+  </ng-content>
 } @else {
   <ng-content/>
 }

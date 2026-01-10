@@ -8,9 +8,8 @@ describe('GqlSignalStatus', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GqlSignalStatus]
-    })
-    .compileComponents();
+      imports: [GqlSignalStatus],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(GqlSignalStatus);
     component = fixture.componentInstance;
