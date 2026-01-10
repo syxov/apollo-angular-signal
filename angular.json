@@ -13,7 +13,7 @@
       "projectType": "library",
       "root": "projects/apollo-angular-signal",
       "sourceRoot": "projects/apollo-angular-signal/src",
-      "prefix": "lib",
+      "prefix": "gql",
       "architect": {
         "build": {
           "builder": "@angular/build:ng-packagr",

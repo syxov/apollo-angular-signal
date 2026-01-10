@@ -1,0 +1,7 @@
+@if (gql().loading) {
+  <ng-content select="[loading]"/>
+} @else if (gql().hasError) {
+  <ng-content select="[error]"/>
+} @else {
+  <ng-content/>
+}

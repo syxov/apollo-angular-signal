@@ -1,6 +1,7 @@
 // @ts-check
 const { defineConfig } = require("eslint/config");
 const rootConfig = require("../../eslint.config.cjs");
+const angular = require('angular-eslint');
 
 module.exports = defineConfig([
   ...rootConfig,
@@ -11,7 +12,7 @@ module.exports = defineConfig([
         "error",
         {
           type: "attribute",
-          prefix: "lib",
+          prefix: "gql",
           style: "camelCase",
         },
       ],
@@ -19,7 +20,7 @@ module.exports = defineConfig([
         "error",
         {
           type: "element",
-          prefix: "lib",
+          prefix: "gql",
           style: "kebab-case",
         },
       ],
@@ -27,6 +28,8 @@ module.exports = defineConfig([
   },
   {
     files: ["**/*.html"],
-    rules: {},
+    extends: [
+      angular.configs.templateRecommended
+    ]
   }
 ]);
