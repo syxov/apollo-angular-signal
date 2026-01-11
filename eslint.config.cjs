@@ -18,6 +18,14 @@ module.exports = defineConfig([
       tseslint.configs.stylistic,
       angular.configs.tsRecommended,
     ],
+    rules: {
+      '@typescript-eslint/no-extraneous-class': [
+        'error',
+        {
+          allowWithDecorator: true,
+        },
+      ],
+    },
   },
   {
     files: ['**/*.html'],

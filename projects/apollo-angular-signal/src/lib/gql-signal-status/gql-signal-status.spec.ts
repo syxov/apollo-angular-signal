@@ -61,6 +61,7 @@ describe('GqlSignalStatus', () => {
 
   it('it should work without global config', () => {
     const fixture = TestBed.createComponent(TestWrapperWithContent);
+    const fixtureElement = fixture.nativeElement as HTMLElement;
 
     fixture.componentRef.setInput('gql', {
       loading: true,
@@ -70,8 +71,7 @@ describe('GqlSignalStatus', () => {
 
     fixture.detectChanges();
 
-    const loadingContainer =
-      fixture.nativeElement.querySelector('.test-loading');
+    const loadingContainer = fixtureElement.querySelector('.test-loading');
     expect(loadingContainer).not.toBeNullable();
 
     fixture.componentRef.setInput('gql', {
@@ -82,7 +82,7 @@ describe('GqlSignalStatus', () => {
 
     fixture.detectChanges();
 
-    const error = fixture.nativeElement.querySelector('.test-error');
+    const error = fixtureElement.querySelector('.test-error');
     expect(error).not.toBeNullable();
 
     fixture.componentRef.setInput('gql', {
@@ -93,10 +93,9 @@ describe('GqlSignalStatus', () => {
 
     fixture.detectChanges();
 
-    const content: HTMLDivElement =
-      fixture.nativeElement.querySelector('.test-content');
+    const content = fixtureElement.querySelector('.test-content');
     expect(content).not.toBeNullable();
-    expect(content.textContent).toEqual('test');
+    expect(content?.textContent).toEqual('test');
   });
 
   describe('it should work with global config', () => {
@@ -108,6 +107,7 @@ describe('GqlSignalStatus', () => {
         },
       });
       const fixture = TestBed.createComponent(TestWrapperWithoutContent);
+      const fixtureElement = fixture.nativeElement as HTMLElement;
 
       fixture.componentRef.setInput('gql', {
         loading: true,
@@ -116,9 +116,7 @@ describe('GqlSignalStatus', () => {
       });
 
       fixture.detectChanges();
-      expect(fixture.nativeElement.textContent.trim()).toEqual(
-        'Loading template',
-      );
+      expect(fixtureElement.textContent.trim()).toEqual('Loading template');
 
       fixture.componentRef.setInput('gql', {
         loading: false,
@@ -127,9 +125,7 @@ describe('GqlSignalStatus', () => {
       });
 
       fixture.detectChanges();
-      expect(fixture.nativeElement.textContent.trim()).toEqual(
-        'Error template',
-      );
+      expect(fixtureElement.textContent.trim()).toEqual('Error template');
     });
 
     it('should work with component templates', () => {
@@ -140,6 +136,7 @@ describe('GqlSignalStatus', () => {
         },
       });
       const fixture = TestBed.createComponent(TestWrapperWithoutContent);
+      const fixtureElement = fixture.nativeElement as HTMLElement;
 
       fixture.componentRef.setInput('gql', {
         loading: true,
@@ -149,11 +146,9 @@ describe('GqlSignalStatus', () => {
 
       fixture.detectChanges();
       expect(
-        fixture.nativeElement.querySelector('gql-loading-template'),
+        fixtureElement.querySelector('gql-loading-template'),
       ).not.toBeNullable();
-      expect(
-        fixture.nativeElement.querySelector('gql-error-template'),
-      ).toBeNullable();
+      expect(fixtureElement.querySelector('gql-error-template')).toBeNullable();
 
       fixture.componentRef.setInput('gql', {
         loading: false,
@@ -163,10 +158,10 @@ describe('GqlSignalStatus', () => {
 
       fixture.detectChanges();
       expect(
-        fixture.nativeElement.querySelector('gql-loading-template'),
+        fixtureElement.querySelector('gql-loading-template'),
       ).toBeNullable();
       expect(
-        fixture.nativeElement.querySelector('gql-error-template'),
+        fixtureElement.querySelector('gql-error-template'),
       ).not.toBeNullable();
     });
   });
