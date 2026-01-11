@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GqlSignalStatus } from './gql-signal-status';
 import { GqlSignalResult } from '../apollo-angular-signal';
 import { GqlLibConfigToken } from '../config';
@@ -47,6 +47,32 @@ class ErrorTemplateComponent {}
 class LoadingTemplateComponent {}
 
 describe('GqlSignalStatus', () => {
+  const createLoadingState = (): GqlSignalResult<string> => ({
+    loading: true,
+    hasError: false,
+    data: undefined,
+  });
+
+  const createErrorState = (): GqlSignalResult<string> => ({
+    loading: false,
+    hasError: true,
+    data: undefined,
+  });
+
+  const createSuccessState = (data: string): GqlSignalResult<string> => ({
+    loading: false,
+    hasError: false,
+    data,
+  });
+
+  const updateGqlState = (
+    fixture: ComponentFixture<TestWrapperWithContent>,
+    state: GqlSignalResult<string>,
+  ): void => {
+    fixture.componentRef.setInput('gql', state);
+    fixture.detectChanges();
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
@@ -59,47 +85,39 @@ describe('GqlSignalStatus', () => {
     }).compileComponents();
   });
 
-  it('it should work without global config', () => {
-    const fixture = TestBed.createComponent(TestWrapperWithContent);
-    const fixtureElement = fixture.nativeElement as HTMLElement;
+  describe('without global config', () => {
+    it('should render loading state', () => {
+      const fixture = TestBed.createComponent(TestWrapperWithContent);
+      const element = fixture.nativeElement as HTMLElement;
 
-    fixture.componentRef.setInput('gql', {
-      loading: true,
-      hasError: false,
-      data: undefined,
+      updateGqlState(fixture, createLoadingState());
+
+      expect(element.querySelector('.test-loading')).not.toBeNullable();
     });
 
-    fixture.detectChanges();
+    it('should render error state', () => {
+      const fixture = TestBed.createComponent(TestWrapperWithContent);
+      const element = fixture.nativeElement as HTMLElement;
 
-    const loadingContainer = fixtureElement.querySelector('.test-loading');
-    expect(loadingContainer).not.toBeNullable();
+      updateGqlState(fixture, createErrorState());
 
-    fixture.componentRef.setInput('gql', {
-      loading: false,
-      hasError: true,
-      data: undefined,
+      expect(element.querySelector('.test-error')).not.toBeNullable();
     });
 
-    fixture.detectChanges();
+    it('should render content with data', () => {
+      const fixture = TestBed.createComponent(TestWrapperWithContent);
+      const element = fixture.nativeElement as HTMLElement;
 
-    const error = fixtureElement.querySelector('.test-error');
-    expect(error).not.toBeNullable();
+      updateGqlState(fixture, createSuccessState('test'));
 
-    fixture.componentRef.setInput('gql', {
-      loading: false,
-      hasError: false,
-      data: 'test',
+      const content = element.querySelector('.test-content');
+      expect(content).not.toBeNullable();
+      expect(content?.textContent).toEqual('test');
     });
-
-    fixture.detectChanges();
-
-    const content = fixtureElement.querySelector('.test-content');
-    expect(content).not.toBeNullable();
-    expect(content?.textContent).toEqual('test');
   });
 
-  describe('it should work with global config', () => {
-    it('should work with string templates', () => {
+  describe('with global config', () => {
+    it('should render string templates', () => {
       TestBed.overrideProvider(GqlLibConfigToken, {
         useValue: {
           errorDefaultTemplate: 'Error template',
@@ -107,28 +125,16 @@ describe('GqlSignalStatus', () => {
         },
       });
       const fixture = TestBed.createComponent(TestWrapperWithoutContent);
-      const fixtureElement = fixture.nativeElement as HTMLElement;
+      const element = fixture.nativeElement as HTMLElement;
 
-      fixture.componentRef.setInput('gql', {
-        loading: true,
-        hasError: false,
-        data: undefined,
-      });
+      updateGqlState(fixture, createLoadingState());
+      expect(element.textContent.trim()).toEqual('Loading template');
 
-      fixture.detectChanges();
-      expect(fixtureElement.textContent.trim()).toEqual('Loading template');
-
-      fixture.componentRef.setInput('gql', {
-        loading: false,
-        hasError: true,
-        data: undefined,
-      });
-
-      fixture.detectChanges();
-      expect(fixtureElement.textContent.trim()).toEqual('Error template');
+      updateGqlState(fixture, createErrorState());
+      expect(element.textContent.trim()).toEqual('Error template');
     });
 
-    it('should work with component templates', () => {
+    it('should render component templates', () => {
       TestBed.overrideProvider(GqlLibConfigToken, {
         useValue: {
           errorDefaultTemplate: ErrorTemplateComponent,
@@ -136,33 +142,15 @@ describe('GqlSignalStatus', () => {
         },
       });
       const fixture = TestBed.createComponent(TestWrapperWithoutContent);
-      const fixtureElement = fixture.nativeElement as HTMLElement;
+      const element = fixture.nativeElement as HTMLElement;
 
-      fixture.componentRef.setInput('gql', {
-        loading: true,
-        hasError: false,
-        data: undefined,
-      });
+      updateGqlState(fixture, createLoadingState());
+      expect(element.querySelector('gql-loading-template')).not.toBeNullable();
+      expect(element.querySelector('gql-error-template')).toBeNullable();
 
-      fixture.detectChanges();
-      expect(
-        fixtureElement.querySelector('gql-loading-template'),
-      ).not.toBeNullable();
-      expect(fixtureElement.querySelector('gql-error-template')).toBeNullable();
-
-      fixture.componentRef.setInput('gql', {
-        loading: false,
-        hasError: true,
-        data: undefined,
-      });
-
-      fixture.detectChanges();
-      expect(
-        fixtureElement.querySelector('gql-loading-template'),
-      ).toBeNullable();
-      expect(
-        fixtureElement.querySelector('gql-error-template'),
-      ).not.toBeNullable();
+      updateGqlState(fixture, createErrorState());
+      expect(element.querySelector('gql-loading-template')).toBeNullable();
+      expect(element.querySelector('gql-error-template')).not.toBeNullable();
     });
   });
 });
