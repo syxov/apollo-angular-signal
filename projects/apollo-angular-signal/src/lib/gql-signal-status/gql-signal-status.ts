@@ -14,10 +14,12 @@ import { NgComponentOutlet } from '@angular/common';
   templateUrl: './gql-signal-status.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  host: {
-    style: 'display: contents',
-  },
   imports: [NgComponentOutlet],
+  styles: `
+    gql-signal-status {
+      display: contents;
+    }
+  `,
 })
 export class GqlSignalStatus<T> {
   protected readonly config = inject(GqlLibConfigToken, {
