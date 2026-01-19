@@ -150,6 +150,91 @@ export class MessagesComponent {
 }
 ```
 
+### Using the GqlSignalStatus Component
+
+The `GqlSignalStatus` component simplifies handling loading and error states with a declarative approach:
+
+```typescript
+import { Component, inject } from '@angular/core';
+import { Apollo, gql } from 'apollo-angular';
+import { gqlQuery, GqlSignalStatus } from 'apollo-angular-signal';
+
+const GET_USERS = gql`
+  query GetUsers {
+    users {
+      id
+      name
+      email
+    }
+  }
+`;
+
+@Component({
+  selector: 'app-users',
+  imports: [GqlSignalStatus],
+  template: `
+    <gql-signal-status [gql]="users()">
+      <div gqlLoading>Loading users...</div>
+      <div gqlError>Failed to load users</div>
+
+      <ul>
+        @for (user of users().data?.users; track user.id) {
+          <li>{{ user.name }} - {{ user.email }}</li>
+        }
+      </ul>
+    </gql-signal-status>
+  `
+})
+export class UsersComponent {
+  private apollo = inject(Apollo);
+
+  users = gqlQuery<{ users: Array<{ id: string; name: string; email: string }> }>(
+    this.apollo.watchQuery({
+      query: GET_USERS
+    }).valueChanges
+  );
+}
+```
+
+**Features:**
+- Automatically shows loading state while query is in progress
+- Displays error state if query fails
+- Renders main content when data is available
+- Supports custom loading and error templates via `gqlLoading` and `gqlError` attributes
+- Falls back to global defaults if no custom templates provided
+
+### Global Configuration
+
+You can configure default loading and error templates globally:
+
+```typescript
+import { ApplicationConfig } from '@angular/core';
+import { provideGqlSignalConfig } from 'apollo-angular-signal';
+
+// With string templates
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideGqlSignalConfig({
+      loadingDefaultTemplate: 'Loading...',
+      errorDefaultTemplate: 'An error occurred'
+    })
+  ]
+};
+
+// Or with component templates
+import { LoadingSpinnerComponent } from './loading-spinner.component';
+import { ErrorMessageComponent } from './error-message.component';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideGqlSignalConfig({
+      loadingDefaultTemplate: LoadingSpinnerComponent,
+      errorDefaultTemplate: ErrorMessageComponent
+    })
+  ]
+};
+```
+
 ## API
 
 ### `gqlQuery<T>(query)`
